@@ -10,7 +10,7 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
 
     pr.successful should be(true)
 
-    pr.get.should equal(expected)
+    pr.get should be(expected)
   }
 
   describe("parser") {
@@ -42,7 +42,7 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
     it("correctly matches package") {
       val parsed = sp.parse(dynamicVariable)
       val packageName : String = parsed.get._1
-      packageName.should equal("scala.util")
+      packageName should be("scala.util")
     }
 
     it ("pulls out class name and type variables") {

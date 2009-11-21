@@ -12,7 +12,7 @@ case class FuncType(args : Type*)
 object Funcs {
   def forClass(clsSpec : ClassSpec) : List[Func] = {
     clsSpec.funcSpecs.map { funcSpec =>
-      Func("lol", FuncType(Unit))
+      Func(clsSpec.name + "#" + funcSpec.name, FuncType(Unit))
     }
   }
 }
