@@ -1,0 +1,1 @@
+~/p/x/scala/bin/scalap -cp ~/p/x/scala/build/quick/classes/library $*
