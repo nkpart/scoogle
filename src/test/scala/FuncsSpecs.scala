@@ -14,7 +14,6 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
 
   describe("funcs") {
     describe("with a simple class") {
-
       it("should have a func for each funcspec") {
         simpleFuncs.length should equal(simple.funcSpecs.length)
       }

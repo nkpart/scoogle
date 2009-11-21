@@ -11,8 +11,8 @@ case class FuncType(args : Type*)
 
 object Funcs {
   def forClass(clsSpec : ClassSpec) : List[Func] = {
-    clsSpec.funcSpecs.map { funcSpec =>
-      Func(clsSpec.name + "#" + funcSpec.name, FuncType(Unit))
+    clsSpec.funcSpecs.map { (funcSpec : FuncSpec) =>
+      Func(clsSpec.name + "#" + funcSpec.name, FuncType(Star(funcSpec.resultType)))
     }
   }
 }
