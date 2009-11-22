@@ -25,32 +25,32 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
 
     describe("with a simple class") {
       it("gives a good name to each funcspec") {
-        simpleFuncs(0).name should be("Simple#toString")
+        simpleFuncs(0).name should equal("Simple#toString")
       }
       it("identifies the return type as the last type") {
-        simpleFuncs(0).funcType.args.last should be(Star("String"))
+        simpleFuncs(0).funcType.args.last should equal(Star("String"))
       }
       it("identifies the class as the first param") {
-        simpleFuncs(0).funcType.args.first should be(Star("Simple"))
+        simpleFuncs(0).funcType.args.first should equal(Star("Simple"))
       }
     }
 
     describe("with a typed class") {
       it("gives a good name to each funcspec") {
-        identityFuncs(0).name should be("Identity[T]#value")
+        identityFuncs(0).name should equal("Identity[T]#value")
       }
       it("identifies a Type-param return value") {
-        identityFuncs(0).funcType.args.last should be(TParam("T"))
+        identityFuncs(0).funcType.args.last should equal(TParam("T"))
       }
       it ("types the class name properly") {
-        identityFuncs(0).funcType.args.first should be(Star("Identity", TParam("T")))
+        identityFuncs(0).funcType.args.first should equal(Star("Identity", TParam("T")))
       }
     }
 
     describe("complete ") {
       it("is complete") {
-        simpleFuncs should be(List(Func("Simple#toString", FuncType(Star("Simple"), Star("String")))))
-        identityFuncs should be(List(Func("Identity[T]#value", FuncType(Star("Identity", TParam("T")), TParam("T")))))
+        simpleFuncs should equal(List(Func("Simple#toString", FuncType(Star("Simple"), Star("String")))))
+        identityFuncs should equal(List(Func("Identity[T]#value", FuncType(Star("Identity", TParam("T")), TParam("T")))))
       }
     }
   }

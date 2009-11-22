@@ -10,9 +10,9 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
   def check[U](p: ScalapParser.Parser[U], input: String, expected: U) {
     val pr = ScalapParser.parse(p, input)
 
-    pr.successful should be(true)
+    pr.successful should equal(true)
 
-    pr.get should be(expected)
+    pr.get should equal(expected)
   }
 
   describe("parser") {
@@ -38,13 +38,13 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
 
     it("parses a class dump") {
       val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
-      parsed.isDefined should be(true)
+      parsed.isDefined should equal(true)
     }
 
     it("correctly matches package") {
       val parsed = sp.parse(dynamicVariable)
       val packageName : String = parsed.get._1
-      packageName should be("scala.util")
+      packageName should equal("scala.util")
     }
 
     it ("pulls out class name and type variables") {
@@ -59,8 +59,8 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
       val funcs = parsed.toList flatMap (_._2.funcSpecs)
       val value_ = FuncSpec("value", Nil, Nil, "T")
       val withValue_ = FuncSpec("withValue", List("S"), List(("newval", "T"), ("thunk", "S")), "S")
-      funcs.contains(value_) should be(true)
-      funcs.contains(withValue_) should be(true)
+      funcs.contains(value_) should equal(true)
+      funcs.contains(withValue_) should equal(true)
     }
   }
 }
