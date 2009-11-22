@@ -10,9 +10,14 @@ case class Func(name : String, funcType : FuncType)
 case class FuncType(args : Type*)
 
 object Funcs {
+
+  def funcName(clsSpec : ClassSpec, funcSpec : FuncSpec) = {
+    clsSpec.name + (if (clsSpec.typeVars.isEmpty) "" else "[" + clsSpec.typeVars.reduceLeft(_+","+_) + "]") + "#" + funcSpec.name
+  }
+
   def forClass(clsSpec : ClassSpec) : List[Func] = {
     clsSpec.funcSpecs.map { (funcSpec : FuncSpec) =>
-      Func(clsSpec.name + "#" + funcSpec.name, FuncType(Star(funcSpec.resultType)))
+      Func(funcName(clsSpec, funcSpec), FuncType(Star(clsSpec.name), Star(funcSpec.resultType)))
     }
   }
 }
