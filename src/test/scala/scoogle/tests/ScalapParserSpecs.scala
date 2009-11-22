@@ -20,8 +20,11 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
     it("has a bunch of little parsers that work") {
       check(ScalapParser.dotwords, "a.b.C", "a.b.C")
       check(ScalapParser.typevar_p, "T <: Any", "T")
-      check(ScalapParser.typevars_p, "[T, S for Some { type A }]", List("T", "S"))
+      check(ScalapParser.typevar_p, "+T <: Any", "T")
+      check(ScalapParser.typevars_p, "[-T, S for Some { type A }]", List("T", "S"))
       check(ScalapParser.typevars_p, "[T[_]]", List("T[_]"))
+      check(ScalapParser.func_name_p, "value_=", "value_=")
+      check(ScalapParser.func_name_p, "$init$", "$init$")
       check(ScalapParser.package_p, "package foo", "foo")
     }
 
@@ -35,21 +38,20 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
   override def toString() : scala.Predef.String = { /* compiled code */ }
 }
 """
-
-    it("parses a class dump") {
+    it ("parses a class dump") {
       val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
       parsed.isDefined should equal(true)
     }
 
     it("correctly matches package") {
       val parsed = sp.parse(dynamicVariable)
-      val packageName : String = parsed.get._1
+      val packageName: String = parsed.get._1
       packageName should equal("scala.util")
     }
 
-    it ("pulls out class name and type variables") {
+    it("pulls out class name and type variables") {
       val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
-      val classSpec : ClassSpec = parsed.get._2
+      val classSpec: ClassSpec = parsed.get._2
       classSpec.name should equal("DynamicVariable")
       classSpec.typeVars should equal(List("T"))
     }
@@ -61,6 +63,25 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
       val withValue_ = FuncSpec("withValue", List("S"), List(("newval", "T"), ("thunk", "S")), "S")
       funcs.contains(value_) should equal(true)
       funcs.contains(withValue_) should equal(true)
+    }
+  }
+
+  describe ("given a trait") {
+
+    val function1 = """
+package scala
+trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.Any] extends java.lang.Object with scala.ScalaObject {
+  def $init$() : scala.Unit = { /* compiled code */ }
+  def apply(v1 : T1) : R
+  override def toString() : java.lang.String = { /* compiled code */ }
+  def compose[A >: scala.Nothing <: scala.Any](g : scala.Function1[A, T1]) : scala.Function1[A, R] = { /* compiled code */ }
+  def andThen[A >: scala.Nothing <: scala.Any](g : scala.Function1[R, A]) : scala.Function1[T1, A] = { /* compiled code */ }
+}
+    """
+
+    it ("parses function1") {
+      val parsed : Option[(String, ClassSpec)] = ScalapParser.parse(function1)
+      parsed.isDefined should equal(true)
     }
   }
 }

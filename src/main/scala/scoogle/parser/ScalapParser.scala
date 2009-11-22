@@ -34,19 +34,19 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
 
   def dotwords = repsep(ident, ".") ^^ { x => x.reduceLeft(_+"."+_) }
   def valuetype_p : Parser[String] = dotwords
-  def typevar_p : Parser[String] = """[A-Z]+(\[\_\])?""".r <~ """[^,^\]]*""".r
+  def typevar_p : Parser[String] = """[\-\+]?""".r ~> """[A-Z]+(\[\_\])?""".r <~ """[^,^\]]*""".r
   def typevars_p : Parser[List[String]] = "[" ~> repsep(typevar_p, ",") <~ "]"
   def package_p : Parser[String] = "package" ~> dotwords
   def func_type_p = ":" ~> valuetype_p
   def func_args_p = rep("(" ~> repsep(ident ~ ":" ~ opt("=>") ~ valuetype_p ^^ {case (name ~ _ ~ _ ~ value) => (name, value)},",") <~ ")").map { x => x.flatMap(e => e)}
-  def func_name_p = """[\w=]+""".r
+  def func_name_p : Parser[String] = """\$?[\w=]+\$?""".r
   
   def func_p  = opt("override" | "implicit") ~ "def" ~> func_name_p ~ flat(opt(typevars_p)) ~ func_args_p ~ opt(func_type_p) <~ opt("""= \{.*\}""".r) ^^ { case (name ~ oT ~ args ~ oR) => {
       oR map { r => FuncSpec(name, oT, args, r) }
     }
   }
   
-  def class_p = "class" ~> ident ~ flat(opt(typevars_p)) ~ upto("{") ~ (rep(func_p) ^^ {x => x.flatMap(e=>e)}) <~ "}" ^^ {
+  def class_p = ("class" | "trait") ~> ident ~ flat(opt(typevars_p)) ~ upto("{") ~ (rep(func_p) ^^ {x => x.flatMap(e=>e)}) <~ "}" ^^ {
     case (name ~ typeVars ~ extendsbits ~ funcSpecs) => ClassSpec(name, typeVars, funcSpecs)
   }
   
@@ -54,6 +54,7 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
   
   def parse(s : String) : Option[(String, ClassSpec)] = {
     val pr = parse(whole, s)
+    println(pr)
     if (pr.successful) Some(pr.get) else None
   }
   
