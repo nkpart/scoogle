@@ -23,9 +23,10 @@ object Funcs {
   import Typeables._
   def typeOf[T](t : T)(implicit typeable: Typeable[T]) : Type = typeable.typeValue(t)
 
+  def typeSection(typevars : List[String]) = if (typevars.isEmpty) "" else "[" + typevars.reduceLeft(_ + "," + _) + "]"
+  
   def funcName(clsSpec: ClassSpec, funcSpec: FuncSpec) = {
-    val typeSection = if (clsSpec.typeVars.isEmpty) "" else "[" + clsSpec.typeVars.reduceLeft(_ + "," + _) + "]"
-    clsSpec.name + typeSection + "#" + funcSpec.name
+    clsSpec.name + typeSection(clsSpec.typeVars) + "#" + funcSpec.name + typeSection(funcSpec.typeVars)
   }
 
   def isTypeVar(clsSpec: ClassSpec, funcSpec: FuncSpec, typeName: String) =

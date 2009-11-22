@@ -8,7 +8,10 @@ import scalaz.Scalaz._
 
 class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
   val simple = ClassSpec("Simple", Nil, List(FuncSpec("toString", Nil, Nil, "String")))
-  val identity = ClassSpec("Identity", List("T"), List(FuncSpec("value", Nil, Nil, "T")))
+  val identity = ClassSpec("Identity", List("T"), List(
+    FuncSpec("value", Nil, Nil, "T"),
+    FuncSpec("as", List("S"), List(("s", "S")), "T")
+    ))
   var simpleFuncs: List[Func] = Nil
   var identityFuncs: List[Func] = Nil
 
@@ -44,6 +47,10 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
       }
       it ("types the class name properly") {
         identityFuncs(0).funcType.args.first should equal(Star("Identity", TParam("T")))
+      }
+
+      it("names a func with a type param accordingly") {
+        identityFuncs(1).name should equal("Identity[T]#as[S]")
       }
     }
 
