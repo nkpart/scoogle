@@ -30,9 +30,7 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
 
   describe("do") {
     it("all") {
-      expectedFuncs foreach { f =>
-        funcs.contains(f) should equal(true)
-      }
+      funcs should equal(expectedFuncs)
     }
   }
 }
