@@ -30,20 +30,7 @@ trait MoreParsers {
 
 object ScalapParser extends JavaTokenParsers with MoreParsers with ImplicitConversions {
 
-  // Example!
-  val ex = """
-package scala.util
-class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object with scala.ScalaObject {
-  def this(init : T) = { /* compiled code */ }
-  def value : T = { /* compiled code */ }
-  def withValue[S >: scala.Nothing <: scala.Any](newval : T)(thunk : => S) : S = { /* compiled code */ }
-  def value_=(newval : T) : scala.Unit = { /* compiled code */ }
-  override def toString() : scala.Predef.String = { /* compiled code */ }
-}
-"""
-
   def dotwords = repsep(ident, ".") ^^ { x => x.reduceLeft(_+"."+_) }
-  ///TODO keep around type vars to avoid double parsing later
   def valuetype_p : Parser[PType] = dotwords ~ flat(opt(typevars_p)) ^^ flatten2(PType.apply _)
   def typevar_p : Parser[PType] = """[\-\+]?""".r ~> ("""\w+(\[\_\])?""".r ~ (typevars_p | success(Nil)) ^^ {
     case (name ~ bits) => PType(name, bits)
