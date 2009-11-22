@@ -20,8 +20,8 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
   val expectedFuncs = List(
      Func("DynamicVariable[T]#value", FuncType(Star("DynamicVariable", TParam("T")), TParam("T"))),
      Func("DynamicVariable[T]#withValue[S]", FuncType(Star("DynamicVariable", TParam("T")), TParam("T"), TParam("S"), TParam("S"))),
-     Func("DynamicVariable[T]#value_=", FuncType(Star("DynamicVariable", TParam("T")), TParam("T"), scoogle.Unit)),
-     Func("DynamicVariable[T]#toString", FuncType(Star("DynamicVariable", TParam("T")), Star("String")))
+     Func("DynamicVariable[T]#value_=", FuncType(Star("DynamicVariable", TParam("T")), TParam("T"), Star("scala.Unit"))),
+     Func("DynamicVariable[T]#toString", FuncType(Star("DynamicVariable", TParam("T")), Star("scala.Predef.String")))
     )
   var funcs : List[Func] = Nil
   override def beforeAll {
@@ -30,7 +30,9 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
 
   describe("do") {
     it("all") {
-      funcs should equal(expectedFuncs)
+      expectedFuncs foreach { f =>
+        funcs.contains(f) should equal(true)
+      }
     }
   }
 }

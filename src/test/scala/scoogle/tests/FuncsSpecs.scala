@@ -8,16 +8,20 @@ import scalaz.Scalaz._
 
 class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
   val simple = ClassSpec("Simple", Nil, List(FuncSpec("toString", Nil, Nil, "String")))
+  val simpleWithArg = ClassSpec("Num", Nil, List(FuncSpec("add", Nil, List(("num", "Num")), "Num")))
   val identity = ClassSpec("Identity", List("T"), List(
     FuncSpec("value", Nil, Nil, "T"),
     FuncSpec("as", List("S"), List(("s", "S")), "T")
+    //FuncSpec("repeat", Nil, List(("n", "Int")), "List[T]")
     ))
   var simpleFuncs: List[Func] = Nil
   var identityFuncs: List[Func] = Nil
+  var simpleArgFuncs: List[Func] = Nil
 
   override def beforeAll {
     simpleFuncs = Funcs.forClass(simple)
     identityFuncs = Funcs.forClass(identity)
+    simpleArgFuncs = Funcs.forClass(simpleWithArg)
   }
 
   describe("funcs") {
@@ -38,6 +42,12 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
       }
     }
 
+    describe("with a class with a function with an arg") {
+      it ("identifies the arg") {
+        simpleArgFuncs(0).funcType.args should equal(List(Star("Num"), Star("Num"), Star("Num"))) 
+      }
+    }
+
     describe("with a typed class") {
       it("gives a good name to each funcspec") {
         identityFuncs(0).name should equal("Identity[T]#value")
@@ -51,6 +61,7 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
 
       it("names a func with a type param accordingly") {
         identityFuncs(1).name should equal("Identity[T]#as[S]")
+        //Func("Identity[T]#as[S]", FuncType(Star("Identity", TParam("T")), TParam("S")))
       }
     }
 
