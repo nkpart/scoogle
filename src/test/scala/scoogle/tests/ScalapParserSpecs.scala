@@ -19,15 +19,20 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
     val sp = ScalapParser
     it("has a bunch of little parsers that work") {
       check(ScalapParser.dotwords, "a.b.C", "a.b.C")
-      check(ScalapParser.typevar_p, "T <: Any", "T")
-      check(ScalapParser.typevar_p, "+T <: Any", "T")
-      check(ScalapParser.typevars_p, "[-T, S for Some { type A }]", List("T", "S"))
-      check(ScalapParser.typevars_p, "[T[_]]", List("T[_]"))
-      check(ScalapParser.typevars_p, "[+T1]", List("T1"))
+      check(ScalapParser.typevar_p, "T <: Any", PType("T"))
+      check(ScalapParser.typevar_p, "+T <: Any", PType("T"))
+      check(ScalapParser.typevars_p, "[-T, S for Some { type A }]", List(PType("T"), PType("S")))
+      check(ScalapParser.typevars_p, "[T[_]]", List(PType("T[_]")))
+      check(ScalapParser.typevars_p, "[+T1]", List(PType("T1")))
       check(ScalapParser.func_name_p, "value_=", "value_=")
       check(ScalapParser.func_name_p, "$init$", "$init$")
-      check(ScalapParser.valuetype_p, "scala.List[A]", "scala.List[A]")
+      check(ScalapParser.valuetype_p, "scala.List[A]", PType("scala.List", List(PType("A"))))
+      check(ScalapParser.valuetype_p, "T", PType("T"))
       check(ScalapParser.package_p, "package foo", "foo")
+
+      check(ScalapParser.func_p, "def this(init : T) = { /* compiled code */ }", None)
+      check(ScalapParser.func_p, "def value : T = { /* compiled code */ }",
+        Some(FuncSpec("value", Nil, Nil, PType("T"))))
     }
 
     val dynamicVariable = """
@@ -55,14 +60,14 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
       val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
       val classSpec: ClassSpec = parsed.get._2
       classSpec.name should equal("DynamicVariable")
-      classSpec.typeVars should equal(List("T"))
+      classSpec.typeVars should equal(List(PType("T")))
     }
 
     it("correctly matches functions in the class") {
       val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
       val funcs = parsed.toList flatMap (_._2.funcSpecs)
-      val value_ = FuncSpec("value", Nil, Nil, "T")
-      val withValue_ = FuncSpec("withValue", List("S"), List(("newval", "T"), ("thunk", "S")), "S")
+      val value_ = FuncSpec("value", Nil, Nil, PType("T"))
+      val withValue_ = FuncSpec("withValue", List(PType("S")), List(("newval", PType("T")), ("thunk", PType("S"))), PType("S"))
       funcs.contains(value_) should equal(true)
       funcs.contains(withValue_) should equal(true)
     }
@@ -89,7 +94,7 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
     it ("knows some stuff about function1's trait decl") {
       val spec : ClassSpec = ScalapParser.parse(function1).get._2
       spec.name should equal("Function1")
-      spec.typeVars should equal(List("T1", "R"))
+      spec.typeVars should equal(List(PType("T1"), PType("R")))
     }
 
     it ("knows some stuff about function1's methods") {
@@ -97,11 +102,11 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
       def f1Type(a : String, b : String) : Star = Star("Function1", TParam(a), TParam(b))
       val baseF = f1Type("T1", "R")
       spec.funcSpecs should equal(List(
-        FuncSpec("$init$", Nil, Nil, "scala.Unit"),
-        FuncSpec("apply", Nil, List(("v1", "T1")), "R"),
-        FuncSpec("toString", Nil, Nil, "java.lang.String"),
-        FuncSpec("compose", List("A"), List(("g", "scala.Function1[A,T1]")), "scala.Function1[A,R]"),
-        FuncSpec("andThen", List("A"), List(("g", "scala.Function1[R,A]")), "scala.Function1[T1,A]")
+        FuncSpec("$init$", Nil, Nil, PType("scala.Unit")),
+        FuncSpec("apply", Nil, List(("v1", PType("T1"))), PType("R")),
+        FuncSpec("toString", Nil, Nil, PType("java.lang.String")),
+        FuncSpec("compose", List(PType("A")), List(("g", PType("scala.Function1", List(PType("A"),PType("T1"))))), PType("scala.Function1", List(PType("A"),PType("R")))),
+        FuncSpec("andThen", List(PType("A")), List(("g", PType("scala.Function1", List(PType("R"),PType("A"))))), PType("scala.Function1", List(PType("T1"),PType("A"))))
         ))
     }
   }

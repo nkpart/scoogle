@@ -19,12 +19,15 @@ trait Typeable[T] {
 }
 object Typeables {
   implicit def classSpec : Typeable[ClassSpec] = new Typeable[ClassSpec] {
-    def typeValue(cs : ClassSpec) : Type = Star(cs.name, cs.typeVars map (TParam(_)))
+    def typeValue(cs : ClassSpec) : Type = Star(cs.name, cs.typeVars map (p=>TParam(p.name)))
   }
 
-  implicit def thing : Typeable[(List[String], String)] = new Typeable[(List[String], String)] {
-    def typeValue(xs : (List[String], String)) : Type = xs match { case (typeVars, name) =>
-      if (typeVars.contains(name)) TParam(name) else Star(name)
+  implicit def thing : Typeable[(List[PType], PType)] = new Typeable[(List[PType], PType)] {
+    def typeValue(xs : (List[PType], PType)) : Type = xs match { case (typeVars, ptype) =>
+      if (typeVars.map(_.name).contains(ptype.name))
+        TParam(ptype.name)
+      else
+        Star(ptype.name, ptype.ts map (e => typeValue(typeVars -> e)))
     }
   }
 }
@@ -33,7 +36,7 @@ object Funcs {
   import Typeables._
   def typeOf[T](t : T)(implicit typeable: Typeable[T]) : Type = typeable.typeValue(t)
 
-  def typeSection(typevars : List[String]) = if (typevars.isEmpty) "" else "[" + typevars.reduceLeft(_ + "," + _) + "]"
+  def typeSection(typevars : List[PType]) = if (typevars.isEmpty) "" else "[" + typevars.map(_.name).reduceLeft(_ + "," + _) + "]"
   
   def funcName(clsSpec: ClassSpec, funcSpec: FuncSpec) =
     clsSpec.name + typeSection(clsSpec.typeVars) + "#" + funcSpec.name + typeSection(funcSpec.typeVars)
@@ -43,7 +46,7 @@ object Funcs {
   def forClass(clsSpec: ClassSpec): List[Func] = {
     clsSpec.funcSpecs.map((funcSpec: FuncSpec) => {
       val resultTypeName = funcSpec.resultType
-      val typeVars: List[String] = clsSpec.typeVars ++ funcSpec.typeVars
+      val typeVars: List[PType] = clsSpec.typeVars ++ funcSpec.typeVars
       val resultType = typeOf((typeVars, resultTypeName))
       val parts = typeOf(clsSpec) :: funcSpec.args.map(e => typeOf(typeVars -> e._2)) ::: List(resultType)
       Func(funcName(clsSpec, funcSpec), FuncType(parts : _*))

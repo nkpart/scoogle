@@ -7,13 +7,14 @@ import org.scalatest.matchers.ShouldMatchers
 import scalaz.Scalaz._
 
 class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
-  val simple = ClassSpec("Simple", Nil, List(FuncSpec("toString", Nil, Nil, "String")))
-  val simpleWithArg = ClassSpec("Num", Nil, List(FuncSpec("add", Nil, List(("num", "Num")), "Num")))
-  val identity = ClassSpec("Identity", List("T"), List(
-    FuncSpec("value", Nil, Nil, "T"),
-    FuncSpec("as", List("S"), List(("s", "S")), "T")
+  val simple = ClassSpec("Simple", Nil, List(FuncSpec("toString", Nil, Nil, PType("String"))))
+  val simpleWithArg = ClassSpec("Num", Nil, List(FuncSpec("add", Nil, List(("num", PType("Num"))), PType("Num"))))
+  val identity = ClassSpec("Identity", List(PType("T")), List(
+    FuncSpec("value", Nil, Nil, PType("T")),
+    FuncSpec("as", List(PType("S")), List(("s", PType("S"))), PType("Identity", List(PType("S"))))
     //FuncSpec("repeat", Nil, List(("n", "Int")), "List[T]")
     ))
+
   var simpleFuncs: List[Func] = Nil
   var identityFuncs: List[Func] = Nil
   var simpleArgFuncs: List[Func] = Nil
@@ -63,12 +64,18 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
         identityFuncs(1).name should equal("Identity[T]#as[S]")
         //Func("Identity[T]#as[S]", FuncType(Star("Identity", TParam("T")), TParam("S")))
       }
+      it("identifies a typed arg/result") {
+        identityFuncs(1).funcType should equal(FuncType(Star("Identity", TParam("T")), TParam("S"), Star("Identity", TParam("S"))))
+      }
     }
 
     describe("complete ") {
       it("is complete") {
         simpleFuncs should equal(List(Func("Simple#toString", FuncType(Star("Simple"), Star("String")))))
-        identityFuncs should equal(List(Func("Identity[T]#value", FuncType(Star("Identity", TParam("T")), TParam("T")))))
+        identityFuncs should equal(List(
+          Func("Identity[T]#value", FuncType(Star("Identity", TParam("T")), TParam("T"))),
+          Func("Identity[T]#as[S]", FuncType(Star("Identity", TParam("T")), TParam("S"), Star("Identity", TParam("S"))))
+          ))
       }
     }
   }
