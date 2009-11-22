@@ -47,12 +47,14 @@ object ScalapParser extends JavaTokenParsers with MoreParsers with ImplicitConve
     case (obj ~ name ~ typeVars ~ extendsbits ~ funcSpecs) => ClassSpec(obj.isDefined, name, typeVars, funcSpecs)
   }
 
-  def whole = package_p ~ class_p ^^ { case (a ~ b) => a -> b }
+  def whole = package_p ~ rep(class_p) ^^ { case (a ~ b) => a -> b }
 
-  def parse(s : String) : Option[(String, ClassSpec)] = {
+  def parse(s : String) : Option[(String, List[ClassSpec])] = {
     val pr = parse(whole, s)
     println(pr)
     if (pr.successful) Some(pr.get) else None
   }
 
+  def parse_!(s : String) : List[ClassSpec] = parse(s).get._2
+  def parse1_!(s : String) : ClassSpec = parse_!(s)(0)
 }

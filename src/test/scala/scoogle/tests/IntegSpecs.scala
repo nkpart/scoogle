@@ -25,7 +25,7 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
     )
   var funcs : List[Func] = Nil
   override def beforeAll {
-    funcs = Funcs.forClass(ScalapParser.parse(input).get._2)
+    funcs = Funcs.forClass(ScalapParser.parse1_!(input))
   }
 
   describe("do") {
@@ -59,7 +59,7 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
 
   var funcs : List[Func] = Nil
   override def beforeAll {
-    funcs = Funcs.forClass(ScalapParser.parse(input).get._2)
+    funcs = Funcs.forClass(ScalapParser.parse1_!(input))
   }
 
   describe("do") {
@@ -99,7 +99,7 @@ object Futures extends java.lang.Object with scala.ScalaObject {
 
   var funcs : List[Func] = Nil
   override def beforeAll {
-    funcs = Funcs.forClass(ScalapParser.parse(input).get._2)
+    funcs = Funcs.forClass(ScalapParser.parse1_!(input))
   }
 
   describe("do") {

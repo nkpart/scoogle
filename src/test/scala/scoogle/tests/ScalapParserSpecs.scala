@@ -54,12 +54,12 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
 }
 """
     it ("parses a class dump") {
-      val parsed: Option[(String, ClassSpec)] = parse(dynamicVariable)
+      val parsed = parse(dynamicVariable)
       parsed.isDefined should equal(true)
     }
 
     it ("knows it's a class") {
-      val s = parse(dynamicVariable).get._2
+      val s = parse1_!(dynamicVariable)
       s.isObject should equal(false)
     }
 
@@ -70,15 +70,13 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
     }
 
     it("pulls out class name and type variables") {
-      val parsed: Option[(String, ClassSpec)] = parse(dynamicVariable)
-      val classSpec: ClassSpec = parsed.get._2
+      val classSpec: ClassSpec = parse1_!(dynamicVariable)
       classSpec.name should equal("DynamicVariable")
       classSpec.typeVars should equal(List(PType("T")))
     }
 
     it("correctly matches functions in the class") {
-      val parsed: Option[(String, ClassSpec)] = parse(dynamicVariable)
-      val funcs = parsed.toList flatMap (_._2.funcSpecs)
+      val funcs = parse1_!(dynamicVariable).funcSpecs
       val value_ = FuncSpec("value", Nil, Nil, PType("T"))
       val withValue_ = FuncSpec("withValue", List(PType("S")), List(("newval", PType("T")), ("thunk", PType("S"))), PType("S"))
       funcs.contains(value_) should equal(true)
@@ -100,23 +98,23 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
     """
 
     it ("parses function1") {
-      val parsed : Option[(String, ClassSpec)] = ScalapParser.parse(function1)
+      val parsed = ScalapParser.parse(function1)
       parsed.isDefined should equal(true)
     }
 
     it ("knows it's a class") {
-      val s = ScalapParser.parse(function1).get._2
+      val s = ScalapParser.parse1_!(function1)
       s.isObject should equal(false)
     }
 
     it ("knows some stuff about function1's trait decl") {
-      val spec : ClassSpec = ScalapParser.parse(function1).get._2
+      val spec : ClassSpec = ScalapParser.parse1_!(function1)
       spec.name should equal("Function1")
       spec.typeVars should equal(List(PType("T1"), PType("R")))
     }
 
     it ("knows some stuff about function1's methods") {
-      val spec : ClassSpec = ScalapParser.parse(function1).get._2
+      val spec : ClassSpec = ScalapParser.parse1_!(function1)
       def f1Type(a : String, b : String) : Star = Star("Function1", TParam(a), TParam(b))
       val baseF = f1Type("T1", "R")
       spec.funcSpecs should equal(List(
@@ -142,7 +140,7 @@ object Futures extends java.lang.Object with scala.ScalaObject {
     }
 
     it ("knows its an object") {
-      val spec = ScalapParser.parse(obj).get._2
+      val spec = ScalapParser.parse1_!(obj)
       spec.isObject should equal(true)
     }
   }
