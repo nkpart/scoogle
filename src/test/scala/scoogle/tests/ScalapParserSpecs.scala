@@ -1,3 +1,5 @@
+package scoogle.tests
+
 import java.lang.String
 import scoogle._
 import org.scalatest.Spec
@@ -55,9 +57,6 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
     it("correctly matches functions in the class") {
       val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
       val funcs = parsed.toList flatMap (_._2.funcSpecs)
-      // val value_ = FuncType(StarStar("DynamicVariable", TParam("T")), TParam("T"))
-      // val withValue_ = FuncType(StarStar("DynamicVariable", TParam("T")), TParam("T"), StarStar("Function0", TParam("S")) , TParam("T"))
-
       val value_ = FuncSpec("value", Nil, Nil, "T")
       val withValue_ = FuncSpec("withValue", List("S"), List(("newval", "T"), ("thunk", "S")), "S")
       funcs.contains(value_) should be(true)

@@ -1,3 +1,5 @@
+package scoogle.tests
+
 import java.lang.String
 import org.scalatest.{BeforeAndAfter, Spec}
 import scoogle._
@@ -14,7 +16,6 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
     simpleFuncs = Funcs.forClass(simple)
     identityFuncs = Funcs.forClass(identity)
   }
-
 
   describe("funcs") {
     it("has a func for each funcspec") {
