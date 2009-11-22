@@ -69,5 +69,48 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
   }
 }
 
+class IntegFuturesSpec extends Spec with ShouldMatchers with BeforeAndAfter {
+  val input = """
+package scala.actors
+object Futures extends java.lang.Object with scala.ScalaObject {
+  def this() = { /* compiled code */ }
+  def future[T >: scala.Nothing <: scala.Any](body : => T) : scala.actors.Future[T] = { /* compiled code */ }
+  def alarm(t : scala.Long) : scala.actors.Future[scala.Nothing] = { /* compiled code */ }
+  def awaitEither[a >: scala.Nothing <: scala.Any, b >: scala.Nothing <: scala.Any](ft1 : scala.actors.Future[a], ft2 : scala.actors.Future[b]) : scala.Any = { /* compiled code */ }
+  def awaitAll(timeout : scala.Long, fts : scala.actors.Future[scala.Any]*) : scala.List[scala.Option[scala.Any]] = { /* compiled code */ }
+  def fromInputChannel[T >: scala.Nothing <: scala.Any](inputChannel : scala.actors.InputChannel[T]) : scala.actors.Future[T] = { /* compiled code */ }
+}
+    """
+
+  val expectedFuncs = List(
+     Func("Futures#future[T]", FuncType(TParam("T"), Star("scala.actors.Future", TParam("T")))),
+     Func("Futures#alarm", FuncType(Star("scala.Long"), Star("scala.actors.Future", Star("scala.Nothing")))),
+     Func("Futures#awaitEither[a,b]", FuncType(
+       Star("scala.actors.Future", TParam("a")), Star("scala.actors.Future", TParam("b")), Star("scala.Any"))),
+     Func("Futures#awaitAll", FuncType(
+         Star("scala.Long"),
+         Star("scala.Array", Star("scala.actors.Future", Star("scala.Any"))),
+         Star("scala.List", Star("scala.Option", Star("scala.Any"))))),
+     Func("Futures#fromInputChannel[T]", FuncType(
+        Star("scala.actors.InputChannel", TParam("T")),
+        Star("scala.actors.Future", TParam("T"))
+       ))
+    )
+
+  var funcs : List[Func] = Nil
+  override def beforeAll {
+    funcs = Funcs.forClass(ScalapParser.parse(input).get._2)
+  }
+
+  describe("do") {
+    it("all") {
+      funcs should equal(expectedFuncs)
+    }
+  }
+}
+
+
+
+
 // TODO
 // Identify thunks and interpret them as Function0[T]

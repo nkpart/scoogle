@@ -16,23 +16,31 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
   }
 
   describe("parser") {
-    val sp = ScalapParser
+    import ScalapParser._
     it("has a bunch of little parsers that work") {
-      check(ScalapParser.dotwords, "a.b.C", "a.b.C")
-      check(ScalapParser.typevar_p, "T <: Any", PType("T"))
-      check(ScalapParser.typevar_p, "+T <: Any", PType("T"))
-      check(ScalapParser.typevars_p, "[-T, S for Some { type A }]", List(PType("T"), PType("S")))
-      check(ScalapParser.typevars_p, "[T[_]]", List(PType("T[_]")))
-      check(ScalapParser.typevars_p, "[+T1]", List(PType("T1")))
-      check(ScalapParser.func_name_p, "value_=", "value_=")
-      check(ScalapParser.func_name_p, "$init$", "$init$")
-      check(ScalapParser.valuetype_p, "scala.List[A]", PType("scala.List", List(PType("A"))))
-      check(ScalapParser.valuetype_p, "T", PType("T"))
-      check(ScalapParser.package_p, "package foo", "foo")
+      check(dotwords, "a.b.C", "a.b.C")
+      check(typevar_p, "T <: Any", PType("T"))
+      check(typevar_p, "+T <: Any", PType("T"))
+      check(typevars_p, "[-T, S for Some { type A }]", List(PType("T"), PType("S")))
+      check(typevars_p, "[T[_]]", List(PType("T[_]")))
+      check(typevars_p, "[+T1]", List(PType("T1")))
+      check(func_name_p, "value_=", "value_=")
+      check(func_name_p, "$init$", "$init$")
+      check(valuetype_p, "scala.List[A]", PType("scala.List", List(PType("A"))))
+      check(valuetype_p, "T", PType("T"))
+      check(package_p, "package foo", "foo")
 
       check(ScalapParser.func_p, "def this(init : T) = { /* compiled code */ }", None)
       check(ScalapParser.func_p, "def value : T = { /* compiled code */ }",
         Some(FuncSpec("value", Nil, Nil, PType("T"))))
+
+      check(ScalapParser.func_p, "def sum(xs : scala.Long*) : scala.Long = { /* compiled code */ }",
+        Some(FuncSpec("sum", Nil, List(("xs", PType("scala.Array", List(PType("scala.Long"))))), PType("scala.Long"))))
+
+      check(ScalapParser.func_p, " def awaitAll(timeout : scala.Long, fts : scala.actors.Future[scala.Any]*) : scala.List[scala.Option[scala.Any]] = { /* compiled code */ }",
+        Some(FuncSpec("awaitAll", Nil,
+          List(("timeout", PType("scala.Long")), ("fts", PType("scala.Array", List(PType("scala.actors.Future", List(PType("scala.Any"))))))),
+          PType("scala.List", List(PType("scala.Option", List(PType("scala.Any"))))))))
     }
 
     val dynamicVariable = """
@@ -46,25 +54,30 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
 }
 """
     it ("parses a class dump") {
-      val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
+      val parsed: Option[(String, ClassSpec)] = parse(dynamicVariable)
       parsed.isDefined should equal(true)
     }
 
+    it ("knows it's a class") {
+      val s = parse(dynamicVariable).get._2
+      s.isObject should equal(false)
+    }
+
     it("correctly matches package") {
-      val parsed = sp.parse(dynamicVariable)
+      val parsed = parse(dynamicVariable)
       val packageName: String = parsed.get._1
       packageName should equal("scala.util")
     }
 
     it("pulls out class name and type variables") {
-      val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
+      val parsed: Option[(String, ClassSpec)] = parse(dynamicVariable)
       val classSpec: ClassSpec = parsed.get._2
       classSpec.name should equal("DynamicVariable")
       classSpec.typeVars should equal(List(PType("T")))
     }
 
     it("correctly matches functions in the class") {
-      val parsed: Option[(String, ClassSpec)] = sp.parse(dynamicVariable)
+      val parsed: Option[(String, ClassSpec)] = parse(dynamicVariable)
       val funcs = parsed.toList flatMap (_._2.funcSpecs)
       val value_ = FuncSpec("value", Nil, Nil, PType("T"))
       val withValue_ = FuncSpec("withValue", List(PType("S")), List(("newval", PType("T")), ("thunk", PType("S"))), PType("S"))
@@ -91,6 +104,11 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
       parsed.isDefined should equal(true)
     }
 
+    it ("knows it's a class") {
+      val s = ScalapParser.parse(function1).get._2
+      s.isObject should equal(false)
+    }
+
     it ("knows some stuff about function1's trait decl") {
       val spec : ClassSpec = ScalapParser.parse(function1).get._2
       spec.name should equal("Function1")
@@ -108,6 +126,24 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
         FuncSpec("compose", List(PType("A")), List(("g", PType("scala.Function1", List(PType("A"),PType("T1"))))), PType("scala.Function1", List(PType("A"),PType("R")))),
         FuncSpec("andThen", List(PType("A")), List(("g", PType("scala.Function1", List(PType("R"),PType("A"))))), PType("scala.Function1", List(PType("T1"),PType("A"))))
         ))
+    }
+  }
+
+  describe("given an object") {
+    val obj = """
+package scala.actors
+object Futures extends java.lang.Object with scala.ScalaObject {
+}
+    """
+
+    it ("parses") {
+      val p = ScalapParser.parse(obj)
+      p.isDefined should equal(true)
+    }
+
+    it ("knows its an object") {
+      val spec = ScalapParser.parse(obj).get._2
+      spec.isObject should equal(true)
     }
   }
 }

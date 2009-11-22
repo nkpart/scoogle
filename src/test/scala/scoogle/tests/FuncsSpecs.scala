@@ -7,13 +7,14 @@ import org.scalatest.matchers.ShouldMatchers
 import scalaz.Scalaz._
 
 class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
-  val simple = ClassSpec("Simple", Nil, List(FuncSpec("toString", Nil, Nil, PType("String"))))
-  val simpleWithArg = ClassSpec("Num", Nil, List(FuncSpec("add", Nil, List(("num", PType("Num"))), PType("Num"))))
-  val identity = ClassSpec("Identity", List(PType("T")), List(
+  val simple = ClassSpec(false, "Simple", Nil, List(FuncSpec("toString", Nil, Nil, PType("String"))))
+  val simpleWithArg = ClassSpec(false,"Num", Nil, List(FuncSpec("add", Nil, List(("num", PType("Num"))), PType("Num"))))
+  val identity = ClassSpec(false, "Identity", List(PType("T")), List(
     FuncSpec("value", Nil, Nil, PType("T")),
     FuncSpec("as", List(PType("S")), List(("s", PType("S"))), PType("Identity", List(PType("S"))))
     //FuncSpec("repeat", Nil, List(("n", "Int")), "List[T]")
     ))
+
 
   var simpleFuncs: List[Func] = Nil
   var identityFuncs: List[Func] = Nil
@@ -76,6 +77,28 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
           Func("Identity[T]#value", FuncType(Star("Identity", TParam("T")), TParam("T"))),
           Func("Identity[T]#as[S]", FuncType(Star("Identity", TParam("T")), TParam("S"), Star("Identity", TParam("S"))))
           ))
+      }
+    }
+  }
+}
+
+class FuncsObjectSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
+  val longT: PType = PType("scala.Long")
+  val simple = ClassSpec(true, "Simple", Nil, List(FuncSpec("double", Nil, List("a" -> longT, "b" -> longT), longT)))
+
+  var simpleFuncs: List[Func] = Nil
+
+  override def beforeAll {
+    simpleFuncs = Funcs.forClass(simple)
+  }
+
+  describe("funcs") {
+    describe("with a simple object") {
+      it("gives a good name to each funcspec") {
+        simpleFuncs(0).name should equal("Simple#double")
+      }
+      it("does not include the object in the type") {
+        simpleFuncs(0).funcType.args should equal(List(Star("scala.Long"), Star("scala.Long"), Star("scala.Long")))
       }
     }
   }

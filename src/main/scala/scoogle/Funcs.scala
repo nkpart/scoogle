@@ -48,7 +48,7 @@ object Funcs {
       val resultTypeName = funcSpec.resultType
       val typeVars: List[PType] = clsSpec.typeVars ++ funcSpec.typeVars
       val resultType = typeOf((typeVars, resultTypeName))
-      val parts = typeOf(clsSpec) :: funcSpec.args.map(e => typeOf(typeVars -> e._2)) ::: List(resultType)
+      val parts = (if (clsSpec.isObject) Nil else List(typeOf(clsSpec))) ::: funcSpec.args.map(e => typeOf(typeVars -> e._2)) ::: List(resultType)
       Func(funcName(clsSpec, funcSpec), FuncType(parts : _*))
     })
   }
