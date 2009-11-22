@@ -51,7 +51,6 @@ object ScalapParser extends JavaTokenParsers with MoreParsers with ImplicitConve
 
   def parse(s : String) : Option[(String, List[ClassSpec])] = {
     val pr = parse(whole, s)
-    println(pr)
     if (pr.successful) Some(pr.get) else None
   }
 
