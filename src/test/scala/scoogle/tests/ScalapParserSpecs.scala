@@ -25,6 +25,7 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
       check(ScalapParser.typevars_p, "[T[_]]", List("T[_]"))
       check(ScalapParser.func_name_p, "value_=", "value_=")
       check(ScalapParser.func_name_p, "$init$", "$init$")
+      check(ScalapParser.valuetype_p, "scala.List[A]", "scala.List[A]")
       check(ScalapParser.package_p, "package foo", "foo")
     }
 
