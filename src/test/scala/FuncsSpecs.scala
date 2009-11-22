@@ -38,6 +38,9 @@ class FuncsSpecs extends Spec with ShouldMatchers with BeforeAndAfter {
       it("should give a good name to each funcspec") {
         identityFuncs(0).name should be("Identity[T]#value")
       }
+      it("should identify a Type-param return value") {
+        identityFuncs(0).funcType.args.last should be(TParam("T"))
+      }
     }
 
     describe("complete ") {
