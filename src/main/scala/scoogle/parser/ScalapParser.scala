@@ -40,7 +40,7 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
   def dotwords = repsep(ident, ".") ^^ { x => x.reduceLeft(_+"."+_) }
   ///TODO keep around type vars to avoid double parsing later
   def valuetype_p : Parser[String] = plus(dotwords ~ (sum(typevars_p, ",") ^^ { "[" + _ + "]" } | ""))
-  def typevar_p : Parser[String] = """[\-\+]?""".r ~> """[A-Z]+(\[\_\])?""".r <~ """[^,^\]]*""".r
+  def typevar_p : Parser[String] = """[\-\+]?""".r ~> """\w+(\[\_\])?""".r <~ """[^,^\]]*""".r
   def typevars_p : Parser[List[String]] = "[" ~> repsep(typevar_p, ",") <~ "]"
   def package_p : Parser[String] = "package" ~> dotwords
   def func_type_p = ":" ~> valuetype_p

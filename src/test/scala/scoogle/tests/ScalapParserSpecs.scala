@@ -10,8 +10,8 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
   def check[U](p: ScalapParser.Parser[U], input: String, expected: U) {
     val pr = ScalapParser.parse(p, input)
 
+    if (!pr.successful) println(pr)
     pr.successful should equal(true)
-
     pr.get should equal(expected)
   }
 
@@ -23,6 +23,7 @@ class ScalapParserSpecs extends Spec with ShouldMatchers {
       check(ScalapParser.typevar_p, "+T <: Any", "T")
       check(ScalapParser.typevars_p, "[-T, S for Some { type A }]", List("T", "S"))
       check(ScalapParser.typevars_p, "[T[_]]", List("T[_]"))
+      check(ScalapParser.typevars_p, "[+T1]", List("T1"))
       check(ScalapParser.func_name_p, "value_=", "value_=")
       check(ScalapParser.func_name_p, "$init$", "$init$")
       check(ScalapParser.valuetype_p, "scala.List[A]", "scala.List[A]")
@@ -83,6 +84,12 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
     it ("parses function1") {
       val parsed : Option[(String, ClassSpec)] = ScalapParser.parse(function1)
       parsed.isDefined should equal(true)
+    }
+
+    it ("knows some stuff about function1's trait decl") {
+      val spec : ClassSpec = ScalapParser.parse(function1).get._2
+      spec.name should equal("Function1")
+      spec.typeVars should equal(List("T1", "R"))
     }
   }
 }
