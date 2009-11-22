@@ -35,5 +35,12 @@ class DynamicVariable[T >: scala.Nothing <: scala.Any] extends java.lang.Object 
   }
 }
 
-// TODO
+/*
+FuncSpec("Function1[T1,R]#$init$", Nil, List(baseF), Star("scala.Unit")),
+        FuncSpec("Function1[T1,R]#apply", Nil, List(baseF, TParam("T1")), TParam("R")),
+        FuncSpec("Function1[T1,R]#toString", Nil, List(baseF), Star("java.lang.String")),
+        FuncSpec("Function1[T1,R]#compose[A]", List("A"), List(baseF, f1Type("A", "T1")), f1Type("A", "R")),
+        FuncSpec("Function1[T1,R]#andThen[A]", List("A"), List(baseF, f1Type("R", "A")), f1Type("T1", "A"))
+ */
+/// / TODO
 // Identify thunks and interpret them as Function0[T]

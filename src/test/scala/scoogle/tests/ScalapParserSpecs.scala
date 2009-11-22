@@ -91,5 +91,18 @@ trait Function1[-T1 >: scala.Nothing <: scala.Any, +R >: scala.Nothing <: scala.
       spec.name should equal("Function1")
       spec.typeVars should equal(List("T1", "R"))
     }
+
+    it ("knows some stuff about function1's methods") {
+      val spec : ClassSpec = ScalapParser.parse(function1).get._2
+      def f1Type(a : String, b : String) : Star = Star("Function1", TParam(a), TParam(b))
+      val baseF = f1Type("T1", "R")
+      spec.funcSpecs should equal(List(
+        FuncSpec("$init$", Nil, Nil, "scala.Unit"),
+        FuncSpec("apply", Nil, List(("v1", "T1")), "R"),
+        FuncSpec("toString", Nil, Nil, "java.lang.String"),
+        FuncSpec("compose", List("A"), List(("g", "scala.Function1[A,T1]")), "scala.Function1[A,R]"),
+        FuncSpec("andThen", List("A"), List(("g", "scala.Function1[R,A]")), "scala.Function1[T1,A]")
+        ))
+    }
   }
 }
