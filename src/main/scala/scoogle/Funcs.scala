@@ -37,7 +37,7 @@ object Funcs {
   def typeOf[T](t : T)(implicit typeable: Typeable[T]) : Type = typeable.typeValue(t)
 
   def typeSection(typevars : List[PType]) = if (typevars.isEmpty) "" else "[" + typevars.map(_.name).reduceLeft(_ + "," + _) + "]"
-  
+
   def funcName(clsSpec: ClassSpec, funcSpec: FuncSpec) =
     clsSpec.name + typeSection(clsSpec.typeVars) + "#" + funcSpec.name + typeSection(funcSpec.typeVars)
 

@@ -15,7 +15,7 @@ object Scoogle {
     " "*pad + f.name + " = " + f.funcType.args.map(e => s(e)).mkString(" -> ")
   }
 
-  def main(args : Array[String]) {
+  def readIn() : String = {
     val in = new BufferedReader(new InputStreamReader(System.in))
     var contents = ""
     var line : String = in.readLine
@@ -23,9 +23,23 @@ object Scoogle {
       contents += line + "\n"
       line = in.readLine
     }
-
-    val psa = ScalapParser.parse(contents).get._2
-
+    contents
+  }
+  def parseScalapOutput(input : String) {
+    val psa = ScalapParser.parse(input).get._2
+    println(psa.map(_.name))
     psa.flatMap(Funcs.forClass _).foreach(p => println(show(p)))
+  }
+
+  def parseFuncs {
+    val contents = readIn()
+    contents.split("\n").foreach { funcLine =>
+      println(ScalapParser.parse(ScalapParser.func_p, funcLine.trim()))
+    }
+  }
+
+  def main(args : Array[String]) {
+    val inputs = readIn()
+    parseScalapOutput(inputs)
   }
 }

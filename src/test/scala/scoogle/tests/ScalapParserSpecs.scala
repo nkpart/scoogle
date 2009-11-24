@@ -7,6 +7,9 @@ import org.scalatest.matchers.ShouldMatchers
 import scalaz.Scalaz._
 
 class ScalapParserSpecs extends Spec with ShouldMatchers {
+  implicit def stringToPType(s : String) : PType = PType(s, Nil)
+  implicit def pairToPType(t : (String, String)) : PType = PType(t._1, List(t._2))
+
   def check[U](p: ScalapParser.Parser[U], input: String, expected: U) {
     val pr = ScalapParser.parse(p, input)
 

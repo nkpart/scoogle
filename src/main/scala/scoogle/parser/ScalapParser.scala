@@ -35,15 +35,24 @@ object ScalapParser extends JavaTokenParsers with MoreParsers with ImplicitConve
   def package_p : Parser[String] = "package" ~> dotwords
   def func_type_p = ":" ~> valuetype_p
   def maybeRepeats_p = (valuetype_p ~ """\*""".r ^^ { case (pt ~ star) => PType("scala.Array", List(pt)) }) | valuetype_p
-  def func_args_p = rep("(" ~> repsep(ident ~ ":" ~ opt("=>") ~ maybeRepeats_p ^^ {case (name ~ _ ~ _ ~ value) => (name, value)},",") <~ ")").map { x => x.flatMap(e => e)}
-  def func_name_p : Parser[String] = """\$?[\w=]+\$?""".r
+  def func_args_p = rep("(" ~ opt("implicit") ~> repsep(ident ~ ":" ~ opt("=>") ~ maybeRepeats_p ^^ {case (name ~ _ ~ _ ~ value) => (name, value)},",") <~ ")").map { x => x.flatMap(e => e)}
+  def func_name_p : Parser[String] = """\$?[\w=\+\*\?!_\-\:><]+\$?""".r
 
-  def func_p : Parser[Option[FuncSpec]]  = opt("override" | "implicit") ~ "def" ~> func_name_p ~ flat(opt(typevars_p)) ~ func_args_p ~ opt(func_type_p) <~ opt("""= \{.*\}""".r) ^^ { case (name ~ oT ~ args ~ oR) => {
+  def func_p : Parser[Option[FuncSpec]]  = rep("override" | "implicit" | "protected") ~ ("def" | "val" | "var") ~> func_name_p ~ flat(opt(typevars_p)) ~ func_args_p ~ opt(func_type_p) <~ opt("""= \{.*\}""".r) ^^ { case (name ~ oT ~ args ~ oR) => {
       oR map { r => FuncSpec(name, oT, args, r) }
     }
   }
 
-  def class_p = opt("class" | "trait" | "abstract" | "sealed" | "final") ~> opt("object") ~ ident ~ flat(opt(typevars_p)) ~ upto("{") ~ (rep(func_p) ^^ {x => x.flatMap(e=>e)}) <~ "}" ^^ {
+  def inner_object_p = "object" ~ ident ~ upto("{") ~ rep(func_p) ~ "}" ~> success[Option[FuncSpec]](None)
+  def inner_class_p = opt("final") ~ "class" ~ ident ~ upto("{") ~ rep(func_p) ~ "}" ~> success[Option[FuncSpec]](None)
+
+  def t : Parser[Option[FuncSpec]] = (inner_object_p | inner_class_p)
+
+  def inside_p : Parser[List[FuncSpec]] = (rep(func_p | t) ^^ {(x : List[Option[FuncSpec]]) => x.flatMap(e=>e)})
+
+  def class_p = rep("class" | "trait" | "abstract" | "sealed" | "final") ~> opt("object") ~ ident ~ flat(opt(typevars_p)) ~ upto("{") ~
+          inside_p <~
+    "}" ^^ {
     case (obj ~ name ~ typeVars ~ extendsbits ~ funcSpecs) => ClassSpec(obj.isDefined, name, typeVars, funcSpecs)
   }
 
